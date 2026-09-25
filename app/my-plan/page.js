@@ -10,6 +10,8 @@ export default function MyPlanPage() {
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("Duration");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const currentList = activeTab === "today" ? plan : saved;
 
@@ -20,9 +22,16 @@ export default function MyPlanPage() {
     return name.includes(query) || tags;
   });
 
-  const displayCount = filteredList.length;
-  const displayMinutes = filteredList.reduce((sum, item) => sum + (item.duration || 0), 0);
-  const displayCalories = filteredList.reduce((sum, item) => sum + (item.caloriesBurned || item.calories || 0), 0);
+  const sortedList = [...filteredList].sort((a, b) => {
+    if (sortBy === "Duration") return (b.duration || 0) - (a.duration || 0);
+    if (sortBy === "Calories") return (b.caloriesBurned || b.calories || 0) - (a.caloriesBurned || a.calories || 0);
+    if (sortBy === "Rating") return parseFloat(b.rating || 0) - parseFloat(a.rating || 0);
+    return 0;
+  });
+
+  const displayCount = sortedList.length;
+  const displayMinutes = sortedList.reduce((sum, item) => sum + (item.duration || 0), 0);
+  const displayCalories = sortedList.reduce((sum, item) => sum + (item.caloriesBurned || item.calories || 0), 0);
 
   const showToast = (message) => {
     setToastMessage(message);
@@ -48,20 +57,11 @@ export default function MyPlanPage() {
       setCompletedWorkouts([...completedWorkouts, id]);
     }
   };
-
-  const getTagStyle = (tag) => {
-    const lowerTag = tag ? tag.toLowerCase() : '';
-    if (lowerTag === 'chest' || lowerTag === 'arms') return 'bg-[#3b441f] text-[#d4f952]';
-    if (lowerTag === 'back') return 'bg-[#44381f] text-[#f9d452]';
-    if (lowerTag === 'shoulders') return 'bg-[#441f1f] text-[#f95252]';
-    if (lowerTag === 'legs' || lowerTag === 'core') return 'bg-[#273b44] text-[#52d4f9]';
-    return 'bg-[#222222] text-gray-400';
-  };
   return (
     <main className="min-h-screen bg-[#000000] text-white pt-32 px-6 md:px-12 lg:px-20 pb-16 relative">
       
       {toastMessage && (
-        <div className="fixed top-24 right-6 bg-[#131416] border border-[#22252a] text-white px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 max-w-sm transition-all duration-300">
+        <div className="fixed top-24 right-6 bg-[#131416] border border-[#22252a] text-white px-4 py-3 rounded-xl shadow-2xl z-[60] flex items-center gap-3 max-w-sm transition-all duration-300">
           <div className="w-5 h-5 rounded-full bg-[#f95252] flex items-center justify-center shrink-0">
             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="4">
               <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
@@ -73,34 +73,31 @@ export default function MyPlanPage() {
 
       <div className="max-w-4xl mx-auto flex flex-col gap-6">
         
-        <div className="w-full bg-[#1e1e1e] border border-[#2d2d2d] rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="max-w-xs">
-            <h2 className="text-xl font-black uppercase tracking-wide mb-1">
-              {activeTab === "today" ? "My Plan" : "My Saved Lifts"}
-            </h2>
-            <p className="text-gray-400 text-[11px] font-light leading-relaxed">
-              Cup of five lifts for today. Finish them, then load more.
-            </p>
-          </div>
-
-          <div className="flex-1 grid grid-cols-3 gap-4 w-full md:max-w-xl bg-[#131416] border border-[#22252a] rounded-xl p-4">
-            <div className="flex flex-col items-center justify-center border-r border-[#22252a]">
-              <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">Exercises</span>
-              <span className="text-[#bfff00] font-black text-2xl leading-none">{displayCount}</span>
-            </div>
-            <div className="flex flex-col items-center justify-center border-r border-[#22252a]">
-              <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">Minutes</span>
-              <span className="text-white font-black text-2xl leading-none">{displayMinutes}</span>
-            </div>
-            <div className="flex flex-col items-center justify-center">
-              <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">Calories</span>
-              <span className="text-white font-black text-2xl leading-none">{displayCalories}</span>
-            </div>
-          </div>
+        <div className="w-full text-left">
+          <h2 className="text-2xl font-black uppercase tracking-wide mb-1">
+            {activeTab === "today" ? "My Plan" : "My Saved Lifts"}
+          </h2>
+          <p className="text-gray-400 text-[11px] font-light leading-relaxed">
+            Cup of five lifts for today. Finish them, then load more.
+          </p>
         </div>
 
+        <div className="w-full bg-[#131416] border border-[#22252a] rounded-xl p-4 grid grid-cols-3 gap-4">
+          <div className="flex flex-col items-center justify-center border-r border-[#22252a]">
+            <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">Exercises</span>
+            <span className="text-[#bfff00] font-black text-2xl leading-none">{displayCount}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center border-r border-[#22252a]">
+            <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">Minutes</span>
+            <span className="text-white font-black text-2xl leading-none">{displayMinutes}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">Calories</span>
+            <span className="text-white font-black text-2xl leading-none">{displayCalories}</span>
+          </div>
+        </div>
         <div className="w-full space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#1c1e22] pb-3 gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#1c1e22] pb-3 gap-4 relative z-30">
             <div className="bg-[#131416] border border-[#22252a] p-1 rounded-full flex gap-1">
               <button onClick={() => { setActiveTab("today"); setSearchQuery(""); }} className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider transition-all ${activeTab === "today" ? "bg-white text-black" : "text-gray-400 hover:text-white"}`}>
                 Today's Plan
@@ -110,7 +107,7 @@ export default function MyPlanPage() {
               </button>
             </div>
 
-            <div className="w-full sm:w-64 relative">
+            <div className="w-full sm:w-56 relative">
               <input 
                 type="text" 
                 placeholder="Search plan entries..." 
@@ -120,31 +117,40 @@ export default function MyPlanPage() {
               />
             </div>
             
-            <div className="bg-[#131416] border border-[#22252a] text-xs px-3 py-1.5 rounded text-gray-400 font-medium">
-              Sort By: Duration ▾
+            <div className="relative shrink-0 z-40">
+              <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="bg-[#141414] border border-[#222222] text-xs px-4 py-2.5 rounded-full text-gray-400 font-bold tracking-wider uppercase flex items-center gap-2 hover:border-gray-500 transition-all cursor-pointer">
+                Sort By: {sortBy} <span className="text-[10px]">▼</span>
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-[#131416] border border-[#22252a] rounded-xl shadow-2xl z-50 overflow-hidden p-1 flex flex-col">
+                  {["Duration", "Calories", "Rating"].map((option) => (
+                    <button key={option} onClick={() => { setSortBy(option); setIsDropdownOpen(false); }} className={`text-left text-xs uppercase tracking-wider font-bold px-4 py-2.5 rounded-lg transition-colors cursor-pointer ${sortBy === option ? "bg-white text-black" : "text-gray-400 hover:bg-[#1c1e22] hover:text-white"}`}>
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-
-          {filteredList.length === 0 ? (
+          {sortedList.length === 0 ? (
             <div className="w-full bg-[#131416] border border-[#22252a] rounded-2xl p-12 flex flex-col items-center justify-center text-center min-h-[260px] gap-5">
               <div>
-                <h3 className="text-white font-black text-xl tracking-wide uppercase mb-1">NO MATCHING LIFTS</h3>
-                <p className="text-gray-500 text-xs max-w-xs mx-auto leading-relaxed font-medium">
-                  No workouts found matching your query. Clear the search bar or add more from the library.
-                </p>
+                <h3 className="text-white font-black text-xl tracking-wide uppercase mb-1">NOTHING HERE YET</h3>
+                <p className="text-gray-500 text-xs max-w-xs mx-auto leading-relaxed font-medium">Browse the library and add a lift to get today's training moving.</p>
               </div>
-              <Link href="/" className="bg-amber-500 text-black font-extrabold uppercase px-6 py-2.5 rounded-full text-xs tracking-widest hover:bg-amber-400 transition-colors">Go to workouts</Link>
+              <Link href="/" className="bg-[#bfff00] text-black font-extrabold uppercase px-6 py-2.5 rounded-full text-xs tracking-widest hover:opacity-90 transition-opacity">Go to workouts</Link>
             </div>
           ) : (
             <div className="space-y-4 w-full">
-              {filteredList.map((workout) => {
-                const displayTags = workout.muscleGroups || workout.tags || [];
+              {sortedList.map((workout) => {
                 const isCompleted = completedWorkouts.includes(workout.id);
+                const workoutImg = workout.image || workout.img || "/logo.png";
 
                 return (
-                  <div key={workout.id} onClick={() => setSelectedWorkout(workout)} className="bg-[#131416] border border-[#22252a] rounded-2xl overflow-hidden hover:border-amber-500 transition-all duration-300 group cursor-pointer w-full flex flex-row h-[120px] p-4 gap-4 items-center">
+                  <div key={workout.id} onClick={() => setSelectedWorkout(workout)} className="bg-[#131416] border border-[#22252a] rounded-2xl overflow-hidden hover:border-amber-500 transition-all duration-300 group cursor-pointer w-full flex flex-row h-[120px] p-4 gap-4 items-center relative z-10">
                     <div className="w-20 h-full bg-[#1c1e22] rounded-xl flex items-center justify-center overflow-hidden shrink-0 relative">
-                      <img src="/carton.jpeg" alt={workout.name || workout.title} className="w-full h-full object-cover opacity-90" />
+                      <img src={workoutImg} alt={workout.name || workout.title} className="w-full h-full object-cover opacity-90" onError={(e)=>{e.target.src="/logo.png"; e.target.className="h-6 opacity-20 object-contain";}} />
                     </div>
 
                     <div className="flex flex-col justify-center flex-1 min-w-0">
@@ -179,16 +185,17 @@ export default function MyPlanPage() {
           )}
         </div>
       </div>
+
       {selectedWorkout && (
-        <div className="fixed inset-x-0 bottom-0 top-20 bg-[#000000] z-40 overflow-y-auto px-6 md:px-12 lg:px-20 pb-16 flex flex-col items-center">
+        <div className="fixed inset-x-0 bottom-0 top-20 bg-[#000000] z-50 overflow-y-auto px-6 md:px-12 lg:px-20 pb-16 flex flex-col items-center">
           <div className="max-w-7xl w-full flex items-center justify-between pb-4 border-b border-[#141414] mb-6 mt-6">
             <span className="text-gray-500 text-xs font-black uppercase tracking-widest">Details View</span>
             <button onClick={() => setSelectedWorkout(null)} className="bg-[#131416] border border-[#22252a] text-white text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-xl hover:bg-[#1c1e22]">Back To Plan</button>
           </div>
 
           <div className="max-w-7xl w-full flex flex-col lg:flex-row gap-8 h-auto lg:h-[520px] items-stretch">
-            <div className="w-full lg:w-[480px] bg-[#131416] rounded-3xl border border-[#22252a] overflow-hidden shrink-0 relative h-[400px] lg:h-full">
-              <img src="/carton.jpeg" alt={selectedWorkout.name || selectedWorkout.title} className="w-full h-full object-cover opacity-90" />
+            <div className="w-full lg:w-[480px] bg-[#131416] rounded-3xl border border-[#22252a] overflow-hidden shrink-0 relative h-[400px] lg:h-full flex items-center justify-center">
+              <img src={selectedWorkout.image || selectedWorkout.img || "/logo.png"} alt={selectedWorkout.name || selectedWorkout.title} className="w-full h-full object-cover opacity-90" onError={(e)=>{e.target.src="/logo.png"; e.target.className="h-16 opacity-20 object-contain";}} />
             </div>
 
             <div className="flex-1 w-full flex flex-col justify-between overflow-y-auto lg:pr-2 gap-6 h-full">
@@ -200,7 +207,7 @@ export default function MyPlanPage() {
 
                 <div className="flex flex-wrap gap-2">
                   {(selectedWorkout.muscleGroups || selectedWorkout.tags || []).map((tag, idx) => (
-                    <span key={idx} className={`text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider ${getTagStyle(tag)}`}>
+                    <span key={idx} className="text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-wider bg-[#bfff00] text-black">
                       {tag}
                     </span>
                   ))}

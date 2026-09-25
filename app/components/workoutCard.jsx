@@ -1,18 +1,14 @@
-export default function WorkoutCard({ title, subtitle, tags, duration, calories, rating }) {
+export default function WorkoutCard({ title, subtitle, tags, duration, calories, rating, image }) {
   return (
     <div className="bg-[#131416] border border-[#22252a] rounded-3xl overflow-hidden hover:border-amber-500 transition-all duration-300 group cursor-pointer w-full p-4 flex flex-col gap-4">
       
-      <div className="w-full h-52 bg-[#1c1e22] rounded-2xl flex items-center justify-center overflow-hidden relative">
-        <img 
-          src="/carton.jpeg" 
-          alt={title}
-          className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => {
-            e.target.src = "/logo.png";
-            e.target.className = "h-8 object-contain opacity-20";
-          }}
-        />
-      </div>
+     <div className="w-full h-52 bg-[#1c1e22] rounded-2xl flex items-center justify-center overflow-hidden">
+  <img 
+    src={image}
+    alt={title} 
+    className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300"
+  />
+</div>
 
       <div className="flex flex-col flex-1 justify-between">
         <div>
